@@ -9,4 +9,11 @@ metadata:
     app.kubernetes.io/created-by: kcd2024-deployment-watcher
   name: deploymentwatcher-sample
 spec:
-  # TODO(user): Add fields here
+  deployments:
+    - name: nginx1
+      namespace: default
+    - name: nginx2
+      namespace: default
+  slack:
+    token: xoxb-
+    channel: deployment-watcher-poc
