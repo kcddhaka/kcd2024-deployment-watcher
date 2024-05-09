@@ -28,8 +28,18 @@ type DeploymentWatcherSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of DeploymentWatcher. Edit deploymentwatcher_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Deployments []NamespacedName `json:"deployments"`
+	Slack       SlackConfig      `json:"slack"`
+}
+
+type NamespacedName struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
+
+type SlackConfig struct {
+	Token   string `json:"token"`
+	Channel string `json:"channel"`
 }
 
 // DeploymentWatcherStatus defines the observed state of DeploymentWatcher
