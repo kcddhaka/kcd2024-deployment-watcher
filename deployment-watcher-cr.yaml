@@ -1,0 +1,12 @@
+apiVersion: watcher.operators.kcddhaka.org/v1alpha1
+kind: DeploymentWatcher
+metadata:
+  name: demo-watcher
+  namespace: default
+spec:
+  deployments:
+    - name: nginx
+      namespace: default
+  slack:
+    channel: dw-non-prod
+    token: xoxb-
