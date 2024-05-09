@@ -1,0 +1,12 @@
+apiVersion: watcher.operators.kcddhaka.org/v1alpha1
+kind: DeploymentWatcher
+metadata:
+  labels:
+    app.kubernetes.io/name: deploymentwatcher
+    app.kubernetes.io/instance: deploymentwatcher-sample
+    app.kubernetes.io/part-of: kcd2024-deployment-watcher
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: kcd2024-deployment-watcher
+  name: deploymentwatcher-sample
+spec:
+  # TODO(user): Add fields here

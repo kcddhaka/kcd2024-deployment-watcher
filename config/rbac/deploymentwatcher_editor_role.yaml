@@ -1,0 +1,31 @@
+# permissions for end users to edit deploymentwatchers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: deploymentwatcher-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kcd2024-deployment-watcher
+    app.kubernetes.io/part-of: kcd2024-deployment-watcher
+    app.kubernetes.io/managed-by: kustomize
+  name: deploymentwatcher-editor-role
+rules:
+- apiGroups:
+  - watcher.operators.kcddhaka.org
+  resources:
+  - deploymentwatchers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - watcher.operators.kcddhaka.org
+  resources:
+  - deploymentwatchers/status
+  verbs:
+  - get

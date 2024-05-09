@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- watcher_v1alpha1_deploymentwatcher.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples
