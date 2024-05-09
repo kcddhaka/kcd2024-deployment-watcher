@@ -18,6 +18,9 @@ package controller
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/types"
+	"reflect"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	watcherv1alpha1 "github.com/kcddhaka/kcd2024-deployment-watcher/api/v1alpha1"
+	v1 "k8s.io/api/apps/v1"
 )
 
 // DeploymentWatcherReconciler reconciles a DeploymentWatcher object
@@ -47,12 +51,50 @@ type DeploymentWatcherReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
+var oldSpecs = make(map[string]v1.DeploymentSpec)
+
 func (r *DeploymentWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	Log := log.Log.WithValues("Request.Namespace", req.Namespace, "Request.Name", req.Name)
+	//Log.Info("Reconcile Called")
 
-	// TODO(user): your logic here
+	dw := &watcherv1alpha1.DeploymentWatcher{}
 
-	return ctrl.Result{}, nil
+	err := r.Get(ctx, req.NamespacedName, dw)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	for _, deploy := range dw.Spec.Deployments {
+		deployment := &v1.Deployment{}
+		err := r.Get(ctx, types.NamespacedName{
+			Namespace: deploy.Namespace,
+			Name:      deploy.Name,
+		}, deployment)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		key := deploy.Namespace + "/" + deploy.Name
+		oldSpec, ok := oldSpecs[key]
+		if ok && !reflect.DeepEqual(oldSpec, deployment.Spec) {
+			Log.Info("Deployment spec has changed", "namespace", deploy.Namespace, "name", deploy.Name)
+
+			if !reflect.DeepEqual(oldSpec.Template.Spec.Containers[0].Image, deployment.Spec.Template.Spec.Containers[0].Image) {
+				Log.Info("Deployment image has changed", "namespace", deploy.Namespace, "name", deploy.Name)
+
+				err = notify(deploy.Namespace, deploy.Name, deployment.Spec.Template.Spec.Containers[0].Image, dw.Spec.Slack.Token, dw.Spec.Slack.Channel)
+				if err != nil {
+					return ctrl.Result{}, err
+				}
+			} else if !reflect.DeepEqual(*oldSpec.Replicas, *deployment.Spec.Replicas) {
+				Log.Info("Deployment replicas have changed", "namespace", deploy.Namespace, "name", deploy.Name)
+			}
+		}
+
+		oldSpecs[key] = deployment.Spec
+	}
+
+	return ctrl.Result{RequeueAfter: time.Duration(10 * time.Second)}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
